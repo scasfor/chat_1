@@ -12,7 +12,10 @@ class Intent extends Model
         'title',
         'response',
         'priority',
-        'is_active'
+        'is_active',
+        'resource_link',
+        'source',
+        'reference_in_original_file',
     ];
 
     public function category()
