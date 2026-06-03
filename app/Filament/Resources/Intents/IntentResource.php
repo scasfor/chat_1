@@ -27,6 +27,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use OpenSpout\Reader\XLSX\Reader;
 
 class IntentResource extends Resource
@@ -46,10 +47,17 @@ class IntentResource extends Resource
                     ->options(Category::orderBy('name')->pluck('name', 'id'))
                     ->searchable()
                     ->required(),
-                TextInput::make('intent_key')
-                    ->required(),
                 TextInput::make('title')
-                    ->required(),
+                    ->required()
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(function (string $operation, $state, callable $set) {
+                        if ($operation === 'create') {
+                            $set('intent_key', Str::slug($state));
+                        }
+                    }),
+                TextInput::make('intent_key')
+                    ->required()
+                    ->unique(ignoreRecord: true),
                 Textarea::make('response')
                     ->required()
                     ->columnSpanFull(),
