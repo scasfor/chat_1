@@ -326,7 +326,7 @@ class IntentMatcher
 
         return [
             'type'        => 'fallback',
-            'message'     => "I'm here to help with APPUI support topics. Please try rephrasing your question.",
+            'message'     => "Estoy aquí para ayudar con temas de soporte de APPUI. Por favor, intenta reformular tu pregunta.",
             'suggestions' => $suggestions,
         ];
     }
