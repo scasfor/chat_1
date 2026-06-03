@@ -69,9 +69,9 @@ class CategorySeeder extends Seeder
             $topics = explode(',', $category->topics);
 
             foreach ($topics as $topic) {
-                \App\Models\Topic::create([
+                \App\Models\CategoryTopic::create([
                     'category_id' => $category->id,
-                    'name' => trim($topic),
+                    'topic' => trim($topic),
                 ]);
             }
         }
