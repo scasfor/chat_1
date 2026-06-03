@@ -61,7 +61,10 @@ class CategorySeeder extends Seeder
         ];
 
         foreach ($categories as $category) {
-            $category = \App\Models\Category::create($category);
+            $category = \App\Models\Category::create([
+                'name' => $category['name'],
+                'sort_order' => $category['sort_order'],
+            ]);
 
             $topics = explode(',', $category->topics);
 
