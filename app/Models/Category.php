@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
 {
+    public const GENERAL_CONVERSATION_NAME = 'Conversación General';
+
     protected $fillable = ['name', 'sort_order', 'status'];
 
     public ?array $topicsBuffer = null;
@@ -32,5 +34,10 @@ class Category extends Model
     public function topics()
     {
         return $this->hasMany(CategoryTopic::class);
+    }
+
+    public function intents()
+    {
+        return $this->hasMany(Intent::class);
     }
 }
