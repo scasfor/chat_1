@@ -10,6 +10,7 @@ class Intent extends Model
         'category_id',
         'intent_key',
         'title',
+        'normalized_title',
         'response',
         'priority',
         'is_active',
@@ -17,6 +18,28 @@ class Intent extends Model
         'source',
         'reference_in_original_file',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (Intent $intent) {
+            if ($intent->isDirty('title')) {
+                $intent->normalized_title = IntentPhrase::normalize($intent->title);
+            }
+        });
+
+        static::saved(function (Intent $intent) {
+            if (!$intent->wasChanged('title') && !$intent->wasRecentlyCreated) {
+                return;
+            }
+
+            $normalizedTitle = IntentPhrase::normalize($intent->title);
+
+            $intent->phrases()
+                ->where('normalized_phrase', $normalizedTitle)
+                ->first()
+                ?? $intent->phrases()->create(['phrase' => $intent->title]);
+        });
+    }
 
     public function category()
     {

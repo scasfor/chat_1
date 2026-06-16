@@ -29,12 +29,11 @@ class IntentMatcher
         $normalized = $this->normalizeText($message);
 
         // ------------------------------------------------------------------
-        // 1. Exact phrase match across ALL active intents
+        // 1. Exact match (phrase or title) across ALL active intents
         // ------------------------------------------------------------------
-        $exactIntent = $this->exactPhraseMatch($normalized);
+        $exactIntent = $this->exactMatch($normalized);
 
-        if ($exactIntent && !$this->engine->isConversationalKey($exactIntent->intent_key)) {
-            // Pure business exact match — return immediately
+        if ($exactIntent) {
             $response = $this->buildResponse($exactIntent);
             $this->logConversation($sessionId, $message, $normalized, $exactIntent->id, 100.0, $response['text']);
 
@@ -42,7 +41,7 @@ class IntentMatcher
                 'intent'      => $exactIntent->intent_key,
                 'confidence'  => 100,
                 'response'    => ['text' => $response['text']],
-                'suggestions' => $response['suggestions'],
+                'suggestions' => [],
             ];
         }
 
@@ -54,15 +53,10 @@ class IntentMatcher
 
         // ------------------------------------------------------------------
         // 3. Detect conversational intent
-        //    Either from the exact phrase match above, or via engine scan
         // ------------------------------------------------------------------
-        $conversationalIntent = null;
-
-        if ($exactIntent && $this->engine->isConversationalKey($exactIntent->intent_key)) {
-            $conversationalIntent = $exactIntent;
-        } elseif (!empty($tokens)) {
-            $conversationalIntent = $this->engine->detect($normalized);
-        }
+        $conversationalIntent = !empty($tokens)
+            ? $this->engine->detect($normalized)
+            : null;
 
         // ------------------------------------------------------------------
         // 4. Business keyword scoring (exclude conversational intents)
@@ -175,17 +169,26 @@ class IntentMatcher
     }
 
     // -------------------------------------------------------------------------
-    // Exact phrase match (all active intents)
+    // Exact match via phrase or title (all active intents)
     // -------------------------------------------------------------------------
 
-    private function exactPhraseMatch(string $normalized): ?Intent
+    private function exactMatch(string $normalized): ?Intent
     {
-        $phrase = IntentPhrase::where('normalized_phrase', $normalized)
-            ->whereHas('intent', fn ($q) => $q->where('is_active', true))
-            ->with('intent')
+        $phraseIntent = Intent::query()
+            ->where('is_active', true)
+            ->whereHas('phrases', fn ($q) => $q->where('normalized_phrase', $normalized))
+            ->orderByDesc('priority')
             ->first();
 
-        return $phrase?->intent;
+        if ($phraseIntent) {
+            return $phraseIntent;
+        }
+
+        return Intent::query()
+            ->where('is_active', true)
+            ->where('normalized_title', $normalized)
+            ->orderByDesc('priority')
+            ->first();
     }
 
     // -------------------------------------------------------------------------
