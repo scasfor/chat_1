@@ -91,7 +91,7 @@ The COI-Bot project consists of two separate applications:
 4. **Database Migrations:**
    Run the database migrations and seeders to set up the schema and default categories/intents.
    ```bash
-   php artisan migrate --force
+   php artisan migrate --force --seed
    ```
    *(If you have a seeder configured for defaults, you can append `--seed`)*
 
